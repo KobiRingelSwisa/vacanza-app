@@ -8,13 +8,7 @@ dotenv.config();
 const app = express();
 
 // ✅ Allow CORS for all frontend requests
-app.use(
-  cors({
-    origin: "*",
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-  })
-);
+app.use(cors());
 
 // ✅ Ensure JSON Parsing is Enabled
 app.use(express.json());

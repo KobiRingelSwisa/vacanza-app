@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { loginUser } from "../services/api";
 
 export default function Login() {
   const [formData, setFormData] = useState({
@@ -15,25 +16,12 @@ export default function Login() {
     e.preventDefault();
     setMessage("");
 
-    try {
-      const response = await fetch("http://localhost:3000/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
-
-      const data = await response.json();
-      if (response.ok) {
-        localStorage.setItem("token", data.token);
-        setMessage("Login Successful! Redirecting...");
-        setTimeout(() => {
-          window.location.href = "/dashboard";
-        }, 2000);
-      } else {
-        setMessage(`❌ Error: ${data.error}`);
-      }
-    } catch (error) {
-      setMessage("❌ Login failed. Try again later.");
+    const response = await loginUser(formData);
+    if (response.error) {
+      setMessage(`Error: ${response.error}`);
+    } else {
+      setMessage("Login Successful! Redirecting...");
+      setTimeout(() => (window.location.href = "/dashboard"), 2000);
     }
   };
 

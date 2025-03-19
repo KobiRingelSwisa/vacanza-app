@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { registerUser } from "../services/api";
 
 export default function Register() {
   const [formData, setFormData] = useState({
@@ -16,21 +17,12 @@ export default function Register() {
     e.preventDefault();
     setMessage("");
 
-    try {
-      const response = await fetch("http://localhost:3000/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
-
-      const data = await response.json();
-      if (response.ok) {
-        setMessage("✅ Registration Successful! You can now log in.");
-      } else {
-        setMessage(`❌ Error: ${data.error}`);
-      }
-    } catch (error) {
-      setMessage("❌ Registration failed. Try again later.");
+    const response = await registerUser(formData);
+    if (response.error) {
+      setMessage(`Error: ${response.error}`);
+    } else {
+      setMessage("Registration Succefull! Redirecting t0 login...");
+      setTimeout(() => (window.location.href = "/login"), 2000);
     }
   };
 
