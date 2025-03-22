@@ -1,5 +1,8 @@
 // amadeus api for flights
+import axios from "axios";
+
 const BACKEND_API_URL = "http://localhost:3000/api/auth";
+const API_BASE_URL = "http://localhost:3000/api";
 const FLIGHT_API_KEY = "lRhxpMClvMyMR4oLHYPYscINXT1GtWGo";
 const FLIGHT_API_SECRET = "pstkXPPhdwIMQLd2";
 
@@ -82,4 +85,28 @@ export const getUserProfile = async () => {
 export const logoutUser = () => {
   localStorage.removeItem("token");
   window.location.href = "/login";
+};
+
+export const searchFlights = async (params) => {
+  try {
+    const response = await axios.get(
+      "http://localhost:3000/api/flights/search",
+      {
+        params: {
+          origin: params.origin,
+          destination: params.destination,
+          departureDate: params.departureDate,
+          returnDate: params.returnDate || undefined,
+          adults: params.adults || 1,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error(
+      "Error fetching flights:",
+      error.response?.data || error.message
+    );
+    throw error;
+  }
 };
