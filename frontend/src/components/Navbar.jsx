@@ -1,106 +1,99 @@
-import { Link } from "react-router-dom";
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { Link, useLocation } from "react-router-dom";
+import { motion } from "framer-motion";
+import "../styles/Navbar.css";
+import vacanzaLogo from "../assets/vacanza-logo.png";
+import {
+  HomeIcon,
+  CalendarIcon,
+  BellIcon,
+  ArrowRightEndOnRectangleIcon,
+  RocketLaunchIcon,
+  UserCircleIcon,
+} from "@heroicons/react/24/outline";
 
-function Navbar() {
-  const [isOpen, setIsOpen] = useState(false);
-  const isAuthenticated = localStorage.getItem("token");
+const Navbar = () => {
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const location = useLocation();
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    window.location.href = "/login";
-  };
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 50);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
-  const links = (
-    <>
-      <Link
-        to="/"
-        className="hover:text-orange-400"
-        onClick={() => setIsOpen(false)}
-      >
-        Home
-      </Link>
-      <Link
-        to="/itinerary"
-        className="hover:text-orange-400"
-        onClick={() => setIsOpen(false)}
-      >
-        Itinerary
-      </Link>
-      <Link
-        to="/booking"
-        className="hover:text-orange-400"
-        onClick={() => setIsOpen(false)}
-      >
-        Booking
-      </Link>
-      <Link
-        to="/profile"
-        className="hover:text-orange-400"
-        onClick={() => setIsOpen(false)}
-      >
-        Profile
-      </Link>
-      {isAuthenticated ? (
-        <>
-          <Link
-            to="/dashboard"
-            className="hover:text-orange-400"
-            onClick={() => setIsOpen(false)}
-          >
-            Dashboard
-          </Link>
-          <button
-            onClick={handleLogout}
-            className="bg-red-500 px-4 py-2 rounded-md hover:bg-red-600"
-          >
-            Logout
-          </button>
-        </>
-      ) : (
-        <>
-          <Link
-            to="/login"
-            className="hover:text-orange-400"
-            onClick={() => setIsOpen(false)}
-          >
-            Login
-          </Link>
-          <Link
-            to="/register"
-            className="hover:text-orange-400"
-            onClick={() => setIsOpen(false)}
-          >
-            Register
-          </Link>
-        </>
-      )}
-    </>
-  );
+  const navLinks = [
+    { path: "/", label: "Home" },
+    { path: "/plan-trip", label: "Plan Trip" },
+    { path: "/search", label: "Search" },
+    { path: "/profile", label: "Profile" },
+  ];
+
   return (
-    <nav className="bg-blue-900 text-white p-4 flex justify-between items-center shadow-md">
-      <h1 className="text-xl font-bold text-white">Vacanza</h1>
-      {/* Mobile Menu Button */}
-      <button
-        className="md:hidden bg-orange-500 px-3 py-2 rounded-md"
-        onClick={() => setIsOpen(!isOpen)}
-      >
-        ☰
-      </button>
-      {/* Desktop Menu */}
-      <div className="hidden md:flex space-x-4">{links}</div>
-      {/* Mobile Dropdown Menu */}
+    <nav className={`navbar ${isScrolled ? "scrolled" : ""}`}>
+      <div className="navbar-container">
+        <Link to="/" className="navbar-logo">
+          <img src={vacanzaLogo} alt="Vacanza Logo" className="logo-image" />
+        </Link>
 
-      <div
-        className={`absolute top-14 left-0 w-full bg-blue-900 text-white flex flex-col items-center md:hidden transition-all duration-300 ease-in-out ${
-          isOpen
-            ? "opacity-100 max-h-96 py-4"
-            : "opacity-0 max-h-0 overflow-hidden"
-        }`}
-      >
-        {links}
+        {/* Desktop Navigation */}
+        <div className="navbar-links">
+          {navLinks.map((link) => (
+            <Link
+              key={link.path}
+              to={link.path}
+              className={`nav-link ${
+                location.pathname === link.path ? "active" : ""
+              }`}
+            >
+              {link.label}
+            </Link>
+          ))}
+        </div>
+
+        {/* Mobile Menu Button */}
+        <button
+          className="mobile-menu-button"
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          aria-label="Toggle menu"
+        >
+          <div className={`hamburger ${isMobileMenuOpen ? "open" : ""}`}>
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+        </button>
       </div>
+
+      {/* Mobile Navigation */}
+      <motion.div
+        className="mobile-menu"
+        initial={false}
+        animate={isMobileMenuOpen ? "open" : "closed"}
+        variants={{
+          open: { opacity: 1, height: "auto" },
+          closed: { opacity: 0, height: 0 },
+        }}
+        transition={{ duration: 0.3 }}
+      >
+        {navLinks.map((link) => (
+          <Link
+            key={link.path}
+            to={link.path}
+            className={`mobile-nav-link ${
+              location.pathname === link.path ? "active" : ""
+            }`}
+            onClick={() => setIsMobileMenuOpen(false)}
+          >
+            {link.label}
+          </Link>
+        ))}
+      </motion.div>
     </nav>
   );
-}
+};
 
 export default Navbar;

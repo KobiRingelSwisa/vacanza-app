@@ -4,6 +4,7 @@ import cors from "cors";
 import sequelize from "./config/database.js";
 import authRoutes from "./routes/authRoutes.js";
 import flightRoutes from "./routes/flightRoutes.js";
+import hotelRoutes from "./routes/hotelRoutes.js";
 
 dotenv.config();
 const app = express();
@@ -28,6 +29,7 @@ app.get("/", (req, res) => {
 
 app.use("/api/auth", authRoutes);
 app.use("/api/flights", flightRoutes);
+app.use("/api/hotels", hotelRoutes);
 
 const PORT = process.env.PORT || 3000;
 

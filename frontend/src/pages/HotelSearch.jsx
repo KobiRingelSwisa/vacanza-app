@@ -89,9 +89,15 @@ function HotelSearch() {
               <h3 className="text-lg font-bold text-blue-800">
                 {hotel.hotel.name}
               </h3>
-              <p className="text-sm text-gray-500">{hotel.hotel.address?.lines?.join(", ")}</p>
-              <p></p>
-              <p></p>
+              <p className="text-sm text-gray-500">
+                {hotel.hotel.address?.lines?.join(", ")}
+              </p>
+              <p className="mt-1 text-sm">
+                Rating: {hotel.hotel.rating} || "N/A"
+              </p>
+              <p className="mt-2 font-semibold text-green-700">
+                From ${hotel.offers[0]?.price.total} || "--"
+              </p>
             </div>
           ))}
         </div>
@@ -99,3 +105,5 @@ function HotelSearch() {
     </div>
   );
 }
+
+export default HotelSearch;

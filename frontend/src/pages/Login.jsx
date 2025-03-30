@@ -1,58 +1,146 @@
 import React, { useState } from "react";
-import { loginUser } from "../services/api";
+import { Link, useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
+import "../styles/Login.css";
 
-export default function Login() {
+const Login = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
-  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+    // Clear error when user starts typing
+    if (error) setError("");
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setMessage("");
+    setIsLoading(true);
+    setError("");
 
-    const response = await loginUser(formData);
-    if (response.error) {
-      setMessage(`Error: ${response.error}`);
-    } else {
-      setMessage("Login Successful! Redirecting...");
-      setTimeout(() => (window.location.href = "/dashboard"), 2000);
+    // Basic validation
+    if (!formData.email || !formData.password) {
+      setError("Please fill in all fields");
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      // TODO: Replace with actual API call
+      // Simulating API call for now
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      // For development/testing, let's simulate a successful login
+      localStorage.setItem("token", "dummy-token");
+      localStorage.setItem(
+        "user",
+        JSON.stringify({
+          name: "John Doe",
+          email: formData.email,
+        })
+      );
+
+      // Redirect to profile page after successful login
+      navigate("/profile");
+    } catch (err) {
+      setError("Invalid email or password");
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className="max-w-md mx-auto mt-10 p-6 bg-white shadow-md rounded-lg">
-      <h2 className="text-2xl font-bold text-center text-blue-900">Login</h2>
-      <form onSubmit={handleSubmit} className="mt-4 space-y-3">
-        <input
-          type="email"
-          name="email"
-          placeholder="Email"
-          className="border p-2 w-full rounded-md"
-          onChange={handleChange}
-          required
-        />
-        <input
-          type="password"
-          name="password"
-          placeholder="Password"
-          className="border p-2 w-full rounded-md"
-          onChange={handleChange}
-          required
-        />
-        <button
-          type="submit"
-          className="w-full bg-blue-500 text-white p-2 rounded-md hover:bg-blue-600"
-        >
-          Log In
-        </button>
-      </form>
-      {message && <p className="mt-4 text-center">{message}</p>}
+    <div className="login-container">
+      <motion.div
+        className="login-card"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        <div className="login-header">
+          <h1>Welcome Back</h1>
+          <p>Sign in to continue your journey</p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="login-form">
+          {error && <div className="error-message">{error}</div>}
+
+          <div className="form-group">
+            <label htmlFor="email">Email</label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              value={formData.email}
+              onChange={handleInputChange}
+              placeholder="Enter your email"
+              className="form-input"
+              required
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="password">Password</label>
+            <input
+              type="password"
+              id="password"
+              name="password"
+              value={formData.password}
+              onChange={handleInputChange}
+              placeholder="Enter your password"
+              className="form-input"
+              required
+            />
+          </div>
+
+          <div className="form-footer">
+            <label className="remember-me">
+              <input type="checkbox" /> Remember me
+            </label>
+            <Link to="/forgot-password" className="forgot-password">
+              Forgot Password?
+            </Link>
+          </div>
+
+          <button
+            type="submit"
+            className={`login-button ${isLoading ? "loading" : ""}`}
+            disabled={isLoading}
+          >
+            {isLoading ? "Signing in..." : "Sign In"}
+          </button>
+        </form>
+
+        <div className="login-divider">
+          <span>OR</span>
+        </div>
+
+        <div className="social-login">
+          <button className="social-button google">
+            <img src="https://www.google.com/favicon.ico" alt="Google" />
+            Continue with Google
+          </button>
+          <button className="social-button facebook">
+            <img src="https://www.facebook.com/favicon.ico" alt="Facebook" />
+            Continue with Facebook
+          </button>
+        </div>
+
+        <p className="register-prompt">
+          Don't have an account? <Link to="/register">Sign up</Link>
+        </p>
+      </motion.div>
     </div>
   );
-}
+};
+
+export default Login;
