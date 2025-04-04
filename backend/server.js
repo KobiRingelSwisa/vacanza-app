@@ -5,15 +5,24 @@ import sequelize from "./config/database.js";
 import authRoutes from "./routes/authRoutes.js";
 import flightRoutes from "./routes/flightRoutes.js";
 import hotelRoutes from "./routes/hotelRoutes.js";
+import tripRoutes from "./routes/tripRoutes.js";
 
 dotenv.config();
+
 const app = express();
 
-// ✅ Allow CORS for all frontend requests
-app.use(cors());
+// Enable CORS for all routes
+app.use(
+  cors({
+    origin: process.env.FRONTEND_URL || "http://localhost:5173",
+    credentials: true,
+  })
+);
 
-// ✅ Ensure JSON Parsing is Enabled
+// Parse JSON bodies
 app.use(express.json());
+
+// Parse URL-encoded bodies
 app.use(express.urlencoded({ extended: true }));
 
 // ✅ Log Incoming Requests for Debugging
@@ -30,7 +39,18 @@ app.get("/", (req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/flights", flightRoutes);
 app.use("/api/hotels", hotelRoutes);
+app.use("/api/trips", tripRoutes);
 
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({
+    error: "Something went wrong!",
+    message: err.message,
+  });
+});
+
+// Start server
 const PORT = process.env.PORT || 3000;
 
 // ✅ Sync Database & Start Server

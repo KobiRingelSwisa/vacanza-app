@@ -9,7 +9,11 @@ const sequelize = new Sequelize(
     host: process.env.DB_HOST,
     port: process.env.DB_PORT,
     dialect: "postgres",
-    logging: false,
+    logging: console.log,
+    define: {
+      timestamps: true,
+      underscored: true,
+    },
   }
 );
 
@@ -17,6 +21,12 @@ const testConnection = async () => {
   try {
     await sequelize.authenticate();
     console.log("Database connection successful!");
+
+    const [results] = await sequelize.query(
+      "SELECT current_database(), current_user"
+    );
+    console.log("Connected to database:", results[0].current_database);
+    console.log("Connected as user:", results[0].current_user);
   } catch (error) {
     console.log("Database connection failed: ", error);
     process.exit(1);

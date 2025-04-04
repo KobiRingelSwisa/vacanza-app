@@ -1,112 +1,75 @@
 // amadeus api for flights
 import axios from "axios";
 
-const BACKEND_API_URL = "http://localhost:3000/api/auth";
-const API_BASE_URL = "http://localhost:3000/api";
-const FLIGHT_API_KEY = "lRhxpMClvMyMR4oLHYPYscINXT1GtWGo";
-const FLIGHT_API_SECRET = "pstkXPPhdwIMQLd2";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000/api";
 
-export const getAccessToken = async () => {
-  try {
-    const response = await fetch(
-      "https://test.api.amadeus.com/v1/security/oauth2/token",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: new URLSearchParams({
-          grant_type: "client_credentials",
-          client_id: FLIGHT_API_KEY,
-          client_secret: FLIGHT_API_SECRET,
-        }),
-      }
-    );
-    const data = await response.json();
-    return data.access_token;
-  } catch (error) {
-    console.log("Error fetching flight API token:", error);
-    return null;
+const api = axios.create({
+  baseURL: API_URL,
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
+
+// Add token to requests if it exists
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem("token");
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
   }
-};
+  return config;
+});
 
-export const registerUser = async (userData) => {
+export const register = async (userData) => {
   try {
-    const response = await fetch(`${BACKEND_API_URL}/register`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(userData),
-    });
-
-    return await response.json();
-  } catch (error) {
-    console.log("Error during registration: ", error);
-    return { error: "Registration failed." };
-  }
-};
-
-export const loginUser = async (userData) => {
-  try {
-    const response = await fetch(`${BACKEND_API_URL}/login`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(userData),
-    });
-
-    const data = await response.json();
-    if (response.ok) {
-      localStorage.setItem("token", data.token);
+    const response = await api.post("/auth/register", userData);
+    // Store token and user data on successful registration
+    if (response.data.token) {
+      localStorage.setItem("token", response.data.token);
+      localStorage.setItem("user", JSON.stringify(response.data.user));
     }
-    return data;
+    return response.data;
   } catch (error) {
-    console.log("Error during login: ", error);
-    return { error: "Login failed." };
+    console.error("Registration error:", error.response?.data || error);
+    throw (
+      error.response?.data?.error ||
+      error.response?.data?.details ||
+      "Registration failed"
+    );
   }
 };
 
-export const getUserProfile = async () => {
+export const login = async (credentials) => {
   try {
-    const token = localStorage.getItem("token");
-    if (!token) return { error: "No token found. Please log in." };
-
-    const response = await fetch(`${BACKEND_API_URL}/profile`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    return await response.json();
+    const response = await api.post("/auth/login", credentials);
+    return response.data;
   } catch (error) {
-    console.log("Error fetching user profile: ", error);
-    return { error: "Failed to fetch profile." };
+    throw error.response?.data?.error || "Login failed";
   }
 };
 
-export const logoutUser = () => {
-  localStorage.removeItem("token");
-  window.location.href = "/login";
+export const verifyEmail = async (token) => {
+  try {
+    const response = await api.get(`/auth/verify-email/${token}`);
+    return response.data;
+  } catch (error) {
+    throw error.response?.data?.error || "Email verification failed";
+  }
 };
 
 export const searchFlights = async (params) => {
   try {
-    const response = await axios.get(
-      "http://localhost:3000/api/flights/search",
-      {
-        params: {
-          origin: params.origin,
-          destination: params.destination,
-          departureDate: params.departureDate,
-          returnDate: params.returnDate || undefined,
-          adults: params.adults || 1,
-        },
-      }
-    );
+    const response = await api.get("/flights/search", { params });
     return response.data;
   } catch (error) {
-    console.error(
-      "Error fetching flights:",
-      error.response?.data || error.message
-    );
-    throw error;
+    throw error.response?.data?.error || "Flight search failed";
+  }
+};
+
+export const searchHotels = async (params) => {
+  try {
+    const response = await api.get("/hotels/search", { params });
+    return response.data;
+  } catch (error) {
+    throw error.response?.data?.error || "Hotel search failed";
   }
 };

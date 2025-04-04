@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import "../styles/Navbar.css";
 import vacanzaLogo from "../assets/vacanza-logo.png";
@@ -16,6 +16,8 @@ const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -25,12 +27,33 @@ const Navbar = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    setIsAuthenticated(!!token);
+  }, [location]);
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    setIsAuthenticated(false);
+    navigate("/login");
+  };
+
   const navLinks = [
     { path: "/", label: "Home" },
     { path: "/plan-trip", label: "Plan Trip" },
     { path: "/search", label: "Search" },
-    { path: "/profile", label: "Profile" },
   ];
+
+  const authLinks = isAuthenticated
+    ? [
+        { path: "/profile", label: "Profile" },
+        { path: "#", label: "Logout", onClick: handleLogout },
+      ]
+    : [
+        { path: "/login", label: "Login" },
+        { path: "/register", label: "Register" },
+      ];
 
   return (
     <nav className={`navbar ${isScrolled ? "scrolled" : ""}`}>
@@ -52,6 +75,27 @@ const Navbar = () => {
               {link.label}
             </Link>
           ))}
+          {authLinks.map((link) =>
+            link.onClick ? (
+              <button
+                key={link.path}
+                onClick={link.onClick}
+                className="nav-link logout-button"
+              >
+                {link.label}
+              </button>
+            ) : (
+              <Link
+                key={link.path}
+                to={link.path}
+                className={`nav-link ${
+                  location.pathname === link.path ? "active" : ""
+                }`}
+              >
+                {link.label}
+              </Link>
+            )
+          )}
         </div>
 
         {/* Mobile Menu Button */}
@@ -91,6 +135,31 @@ const Navbar = () => {
             {link.label}
           </Link>
         ))}
+        {authLinks.map((link) =>
+          link.onClick ? (
+            <button
+              key={link.path}
+              onClick={() => {
+                link.onClick();
+                setIsMobileMenuOpen(false);
+              }}
+              className="mobile-nav-link logout-button"
+            >
+              {link.label}
+            </button>
+          ) : (
+            <Link
+              key={link.path}
+              to={link.path}
+              className={`mobile-nav-link ${
+                location.pathname === link.path ? "active" : ""
+              }`}
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              {link.label}
+            </Link>
+          )
+        )}
       </motion.div>
     </nav>
   );

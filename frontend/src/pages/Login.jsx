@@ -35,24 +35,29 @@ const Login = () => {
     }
 
     try {
-      // TODO: Replace with actual API call
-      // Simulating API call for now
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      const response = await fetch("http://localhost:3000/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
 
-      // For development/testing, let's simulate a successful login
-      localStorage.setItem("token", "dummy-token");
-      localStorage.setItem(
-        "user",
-        JSON.stringify({
-          name: "John Doe",
-          email: formData.email,
-        })
-      );
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Login failed");
+      }
 
-      // Redirect to profile page after successful login
+      const data = await response.json();
+
+      // Store the token and user data
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
+
+      // Redirect to profile page
       navigate("/profile");
     } catch (err) {
-      setError("Invalid email or password");
+      setError(err.message);
     } finally {
       setIsLoading(false);
     }

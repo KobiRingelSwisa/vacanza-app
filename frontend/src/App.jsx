@@ -10,6 +10,8 @@ import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import FlightSearch from "./pages/FlightSearch";
 import HotelSearch from "./pages/HotelSearch";
+import TripDetails from "./pages/TripDetails";
+import EditTrip from "./pages/EditTrip";
 
 const PrivateRoute = ({ children }) => {
   return localStorage.getItem("token") ? children : <Navigate to="/login" />;
@@ -39,6 +41,22 @@ function App() {
             element={
               <PrivateRoute>
                 <Dashboard />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/trip/:id"
+            element={
+              <PrivateRoute>
+                <TripDetails />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/edit-trip/:id"
+            element={
+              <PrivateRoute>
+                <EditTrip />
               </PrivateRoute>
             }
           />
